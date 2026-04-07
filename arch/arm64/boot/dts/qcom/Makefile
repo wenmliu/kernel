@@ -411,6 +411,10 @@ dtb-$(CONFIG_ARCH_QCOM)	+= x1p42100-hp-omnibook-x14.dtb x1p42100-hp-omnibook-x14
 x1p42100-lenovo-thinkbook-16-el2-dtbs	:= x1p42100-lenovo-thinkbook-16.dtb x1-el2.dtbo
 dtb-$(CONFIG_ARCH_QCOM)	+= x1p42100-lenovo-thinkbook-16.dtb x1p42100-lenovo-thinkbook-16-el2.dtb
 
+hamoa-evk-camx-dtbs  := hamoa-iot-evk.dtb hamoa-evk-camx.dtbo
+
+dtb-$(CONFIG_ARCH_QCOM)	+= hamoa-evk-camx.dtb
+
 lemans-evk-camx-dtbs	:= lemans-evk.dtb lemans-evk-camx.dtbo
 
 dtb-$(CONFIG_ARCH_QCOM)	+= lemans-evk-camx.dtb
