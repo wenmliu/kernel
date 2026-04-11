@@ -423,6 +423,8 @@ lemans-camx-el2-dtbs	:= lemans-evk-el2.dtb lemans-evk-camx.dtbo lemans-camx-el2.
 
 dtb-$(CONFIG_ARCH_QCOM)	+= lemans-camx-el2.dtb
 
+dtb-$(CONFIG_ARCH_QCOM)	+= lemans-evk-staging.dtbo
+
 monaco-evk-camx-dtbs   := monaco-evk.dtb monaco-evk-camx.dtbo
 
 dtb-$(CONFIG_ARCH_QCOM) += monaco-evk-camx.dtb
@@ -430,6 +432,8 @@ dtb-$(CONFIG_ARCH_QCOM) += monaco-evk-camx.dtb
 monaco-camx-el2-dtbs	:= monaco-evk-el2.dtb monaco-evk-camx.dtbo monaco-camx-el2.dtbo
 
 dtb-$(CONFIG_ARCH_QCOM)	+= monaco-camx-el2.dtb
+
+dtb-$(CONFIG_ARCH_QCOM)	+= monaco-evk-staging.dtbo
 
 qcs615-ride-camx-dtbs	:= qcs615-ride.dtb qcs615-ride-camx.dtbo
 
@@ -439,6 +443,8 @@ qcs6490-rb3gen2-vision-mezzanine-camx-dtbs := qcs6490-rb3gen2-vision-mezzanine.d
 					      qcs6490-rb3gen2-vision-mezzanine-camx.dtbo
 
 dtb-$(CONFIG_ARCH_QCOM) += qcs6490-rb3gen2-vision-mezzanine-camx.dtb
+
+dtb-$(CONFIG_ARCH_QCOM)	+= qcs6490-rb3gen2-staging.dtbo
 
 qcs8300-ride-camx-dtbs:= qcs8300-ride.dtb qcs8300-ride-camx.dtbo
 
