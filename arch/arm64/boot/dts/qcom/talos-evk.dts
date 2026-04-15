@@ -45,7 +45,7 @@
 		compatible = "qcom,qcs615-sndcard";
 		model = "TALOS-EVK";
 
-		pinctrl-0 = <&mi2s1_pins>;
+		pinctrl-0 = <&mi2s1_pins>, <&mi2s_mclk>;
 		pinctrl-names = "default";
 
 		pri-mi2s-capture-dai-link {
@@ -151,10 +151,14 @@
 };
 
 &i2c5 {
+	status = "okay";
+
 	codec_da7212: codec@1a {
 		compatible = "dlg,da7212";
 		reg = <0x1a>;
 		#sound-dai-cells = <0>;
+		clocks = <&q6prmcc LPASS_CLK_ID_MCLK_2 LPASS_CLK_ATTRIBUTE_COUPLE_NO>;
+		clock-names = "mclk";
 		VDDA-supply = <&vreg_v1p8_out>;
 		VDDIO-supply = <&vreg_v1p8_out>;
 		VDDMIC-supply = <&vreg_v3p3_out>;
