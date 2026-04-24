@@ -164,13 +164,11 @@ static int of_pmsi_get_dev_id(struct irq_domain *domain, struct device *dev,
 	} while (!ret);
 
 	if (ret) {
-		struct of_phandle_args msi_spec = {};
+		struct device_node *np = NULL;
 
-		ret = of_map_msi_id(dev->of_node, dev->id, NULL, &msi_spec);
-		if (!ret) {
-			of_node_put(msi_spec.np);
-			*dev_id = msi_spec.args[0];
-		}
+		ret = of_map_msi_id(dev->of_node, dev->id, &np, dev_id);
+		if (np)
+			of_node_put(np);
 	}
 
 	return ret;
@@ -211,13 +209,12 @@ static int of_v5_pmsi_get_msi_info(struct irq_domain *domain, struct device *dev
 	} while (!ret);
 
 	if (ret) {
-		struct of_phandle_args msi_spec = {};
+		struct device_node *np = NULL;
 
-		ret = of_map_msi_id(dev->of_node, dev->id, NULL, &msi_spec);
-		if (!ret) {
-			*dev_id = msi_spec.args[0];
-			ret = its_translate_frame_address(msi_spec.np, pa);
-			of_node_put(msi_spec.np);
+		ret = of_map_msi_id(dev->of_node, dev->id, &np, dev_id);
+		if (np) {
+			ret = its_translate_frame_address(np, pa);
+			of_node_put(np);
 		}
 	}
 
