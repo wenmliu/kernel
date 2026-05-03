@@ -531,4 +531,6 @@ dtb-$(CONFIG_ARCH_QCOM)	+= talos-evk-camx.dtb
 
 dtb-$(CONFIG_ARCH_QCOM) += talos-staging.dtbo
 
+dtb-$(CONFIG_ARCH_QCOM) += talos-evk-staging.dtbo
+
 dtb-$(CONFIG_ARCH_QCOM) += kodiak-staging.dtbo
