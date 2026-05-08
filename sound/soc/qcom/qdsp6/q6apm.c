@@ -772,8 +772,12 @@ static int apm_probe(gpr_device_t *gdev)
 		dev_err(dev, "failed to register q6apm: %d\n", ret);
 		return ret;
 	}
+	
+	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+	if (ret)
+		snd_soc_unregister_component(dev);
 
-	return devm_of_platform_populate(dev);
+	return ret;
 }
 
 static void apm_remove(gpr_device_t *gdev)
