@@ -326,11 +326,13 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
 {
 	u8 bpp = csiphy_get_bpp(csiphy->res->formats->formats, csiphy->res->formats->nformats,
 				csiphy->fmt[MSM_CSIPHY_PAD_SINK].code);
-	u8 num_lanes = csiphy->cfg.csi2->lane_cfg.num_data;
+	struct csiphy_lanes_cfg *lncfg = &csiphy->cfg.csi2->lane_cfg;
 	struct phy_configure_opts_mipi_dphy *dphy_cfg;
 	union phy_configure_opts dphy_opts = { 0 };
 	struct device *dev = csiphy->camss->dev;
+	u8 num_lanes = lncfg->num_data;
 	s64 link_freq;
+	int i;
 	int ret;
 
 	dphy_cfg = &dphy_opts.mipi_dphy;
@@ -345,7 +347,18 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
 
 	phy_mipi_dphy_get_default_config_for_hsclk(link_freq, num_lanes, dphy_cfg);
 
+	/* Set clock lane id and polarity */
+	dphy_cfg->clock_lane_position = lncfg->clk.pos;
+	dphy_cfg->clock_lane_polarity = lncfg->clk.pol;
+
+	/* Set data lane_mask and lane_polarities */
+	for (i = 0; i < num_lanes; i++) {
+		dphy_cfg->lane_positions[i] = lncfg->data[i].pos;
+		dphy_cfg->lane_polarities[i] = lncfg->data[i].pol;
+	}
+
 	phy_set_mode(csiphy->phy, PHY_MODE_MIPI_DPHY);
+
 	ret = phy_configure(csiphy->phy, &dphy_opts);
 	if (ret) {
 		dev_err(dev, "failed to configure MIPI D-PHY\n");
@@ -796,7 +809,6 @@ int msm_csiphy_subdev_init(struct camss *camss,
 {
 	struct device *dev = camss->dev;
 	struct of_phandle_args args;
-	u8 combo_mode;
 	int idx;
 	int ret;
 
@@ -817,13 +829,6 @@ int msm_csiphy_subdev_init(struct camss *camss,
 	if (!of_device_is_available(args.np))
 		goto put_np;
 
-	combo_mode = args.args[0];
-	if (combo_mode != PHY_TYPE_DPHY) {
-		dev_err(dev, "%s mode %d not supported\n", csiphy->name, combo_mode);
-		ret = -EOPNOTSUPP;
-		goto put_np;
-	}
-
 	csiphy->phy = devm_phy_get(dev, csiphy->name);
 	if (IS_ERR(csiphy->phy)) {
 		ret = PTR_ERR(csiphy->phy);
@@ -832,7 +837,6 @@ int msm_csiphy_subdev_init(struct camss *camss,
 
 	csiphy->camss = camss;
 	csiphy->id = id;
-	csiphy->cfg.combo_mode = combo_mode;
 	csiphy->res = &res->csiphy;
 
 	ret = phy_init(csiphy->phy);
@@ -942,6 +946,7 @@ int msm_csiphy_register_entity(struct csiphy_device *csiphy,
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
 	snprintf(sd->name, ARRAY_SIZE(sd->name), "%s%d",
 		 MSM_CSIPHY_NAME, csiphy->id);
+	sd->grp_id = CSIPHY_GRP_ID;
 	v4l2_set_subdevdata(sd, csiphy);
 
 	ret = csiphy_init_formats(sd, NULL);
