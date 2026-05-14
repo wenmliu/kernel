@@ -1,27 +1,35 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (c) 2024-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
-#ifndef _CORESIGHT_TGU_H
-#define _CORESIGHT_TGU_H
+#ifndef _QCOM_TGU_H
+#define _QCOM_TGU_H
 
 /* Register addresses */
-#define TGU_CONTROL 0x0000
+#define TGU_CONTROL		0x0000
+#define TGU_LAR		0xfb0
+#define TGU_UNLOCK_OFFSET	0xc5acce55
+#define TGU_DEVID		0xfc8
 #define CORESIGHT_DEVID2	0xfc0
-/* Register read/write */
-#define tgu_writel(drvdata, val, off) __raw_writel((val), drvdata->base + off)
-#define tgu_readl(drvdata, off) __raw_readl(drvdata->base + off)
 
-#define TGU_DEVID_SENSE_INPUT(devid_val) ((int) BMVAL(devid_val, 10, 17))
-#define TGU_DEVID_STEPS(devid_val) ((int)BMVAL(devid_val, 3, 6))
-#define TGU_DEVID_CONDITIONS(devid_val) ((int)BMVAL(devid_val, 0, 2))
-#define TGU_DEVID2_TIMER0(devid_val) ((int)BMVAL(devid_val, 18, 23))
-#define TGU_DEVID2_TIMER1(devid_val) ((int)BMVAL(devid_val, 13, 17))
-#define TGU_DEVID2_COUNTER0(devid_val) ((int)BMVAL(devid_val, 6, 11))
-#define TGU_DEVID2_COUNTER1(devid_val) ((int)BMVAL(devid_val, 0, 5))
+#define TGU_DEVID_SENSE_INPUT(devid_val) \
+	((int)FIELD_GET(GENMASK(17, 10), devid_val))
+#define TGU_DEVID_STEPS(devid_val) \
+	((int)FIELD_GET(GENMASK(6, 3), devid_val))
+#define TGU_DEVID_CONDITIONS(devid_val) \
+	((int)FIELD_GET(GENMASK(2, 0), devid_val))
+#define TGU_DEVID2_TIMER0(devid_val)	\
+	((int)FIELD_GET(GENMASK(23, 18), devid_val))
+#define TGU_DEVID2_TIMER1(devid_val)	\
+	((int)FIELD_GET(GENMASK(17, 13), devid_val))
+#define TGU_DEVID2_COUNTER0(devid_val)	\
+	((int)FIELD_GET(GENMASK(11, 6), devid_val))
+#define TGU_DEVID2_COUNTER1(devid_val)	\
+	((int)FIELD_GET(GENMASK(5, 0), devid_val))
 
-#define NUMBER_BITS_EACH_SIGNAL 4
+
+#define TGU_BITS_PER_SIGNAL 4
 #define LENGTH_REGISTER 32
 
 /*
@@ -32,13 +40,13 @@
  * |                         |                           |   reserve   |$
  * |                         |                           |             |$
  * |coresight management     |                           |-------------|base+n*0x1D8+0x1F4$
- * |     registe             |                     |---> |prioroty[3]  |$
+ * |     registers           |                     |---> |priority[3]  |$
  * |                         |                     |     |-------------|base+n*0x1D8+0x194$
- * |                         |                     |     |prioroty[2]  |$
+ * |                         |                     |     |priority[2]  |$
  * |-------------------------|                     |     |-------------|base+n*0x1D8+0x134$
- * |                         |                     |     |prioroty[1]  |$
+ * |                         |                     |     |priority[1]  |$
  * |         step[7]         |                     |     |-------------|base+n*0x1D8+0xD4$
- * |-------------------------|->base+0x40+7*0x1D8  |     |prioroty[0]  |$
+ * |-------------------------|->base+0x40+7*0x1D8  |     |priority[0]  |$
  * |                         |                     |     |-------------|base+n*0x1D8+0x74$
  * |         ...             |                     |     |  condition  |$
  * |                         |                     |     |   select    |$
@@ -64,19 +72,19 @@
 /* Calculate compare step addresses */
 #define PRIORITY_REG_STEP(step, priority, reg)\
 	(PRIORITY_START_OFFSET + PRIORITY_OFFSET * priority +\
-	REG_OFFSET * reg + STEP_OFFSET * step)
+	 REG_OFFSET * reg + STEP_OFFSET * step)
 
 #define CONDITION_DECODE_STEP(step, decode) \
 	(CONDITION_DECODE_OFFSET + REG_OFFSET * decode + STEP_OFFSET * step)
+
+#define CONDITION_SELECT_STEP(step, select) \
+	(CONDITION_SELECT_OFFSET + REG_OFFSET * select + STEP_OFFSET * step)
 
 #define TIMER_COMPARE_STEP(step, timer) \
 	(TIMER_START_OFFSET + REG_OFFSET * timer + STEP_OFFSET * step)
 
 #define COUNTER_COMPARE_STEP(step, counter) \
 	(COUNTER_START_OFFSET + REG_OFFSET * counter + STEP_OFFSET * step)
-
-#define CONDITION_SELECT_STEP(step, select) \
-	(CONDITION_SELECT_OFFSET + REG_OFFSET * select + STEP_OFFSET * step)
 
 #define tgu_dataset_rw(name, step_index, type, reg_num)                  \
 	(&((struct tgu_attribute[]){ {                                   \
@@ -88,24 +96,20 @@
 
 #define STEP_PRIORITY(step_index, reg_num, priority)                     \
 	tgu_dataset_rw(reg##reg_num, step_index, TGU_PRIORITY##priority, \
-		       reg_num)
-
+			reg_num)
 #define STEP_DECODE(step_index, reg_num) \
 	tgu_dataset_rw(reg##reg_num, step_index, TGU_CONDITION_DECODE, reg_num)
-
 #define STEP_SELECT(step_index, reg_num) \
 	tgu_dataset_rw(reg##reg_num, step_index, TGU_CONDITION_SELECT, reg_num)
-
 #define STEP_TIMER(step_index, reg_num) \
 	tgu_dataset_rw(reg##reg_num, step_index, TGU_TIMER, reg_num)
-
 #define STEP_COUNTER(step_index, reg_num) \
 	tgu_dataset_rw(reg##reg_num, step_index, TGU_COUNTER, reg_num)
 
-#define STEP_PRIORITY_LIST(step_index, priority)  \
-	{STEP_PRIORITY(step_index, 0, priority),  \
+#define STEP_PRIORITY_LIST(step_index, priority) \
+	{STEP_PRIORITY(step_index, 0, priority), \
 	 STEP_PRIORITY(step_index, 1, priority),  \
-	 STEP_PRIORITY(step_index, 2, priority),  \
+	 STEP_PRIORITY(step_index, 2, priority),	 \
 	 STEP_PRIORITY(step_index, 3, priority),  \
 	 STEP_PRIORITY(step_index, 4, priority),  \
 	 STEP_PRIORITY(step_index, 5, priority),  \
@@ -121,7 +125,7 @@
 	 STEP_PRIORITY(step_index, 15, priority), \
 	 STEP_PRIORITY(step_index, 16, priority), \
 	 STEP_PRIORITY(step_index, 17, priority), \
-	 NULL			\
+	 NULL                   \
 	}
 
 #define STEP_DECODE_LIST(n) \
@@ -129,7 +133,7 @@
 	 STEP_DECODE(n, 1), \
 	 STEP_DECODE(n, 2), \
 	 STEP_DECODE(n, 3), \
-	 NULL           \
+	 NULL               \
 	}
 
 #define STEP_SELECT_LIST(n) \
@@ -138,19 +142,19 @@
 	 STEP_SELECT(n, 2), \
 	 STEP_SELECT(n, 3), \
 	 STEP_SELECT(n, 4), \
-	 NULL           \
+	 NULL               \
 	}
 
 #define STEP_TIMER_LIST(n) \
 	{STEP_TIMER(n, 0), \
 	 STEP_TIMER(n, 1), \
-	 NULL           \
+	 NULL              \
 	}
 
 #define STEP_COUNTER_LIST(n) \
 	{STEP_COUNTER(n, 0), \
 	 STEP_COUNTER(n, 1), \
-	 NULL           \
+	 NULL                \
 	}
 
 #define PRIORITY_ATTRIBUTE_GROUP_INIT(step, priority)\
@@ -196,7 +200,7 @@ enum operation_index {
 	TGU_CONDITION_DECODE,
 	TGU_CONDITION_SELECT,
 	TGU_TIMER,
-	TGU_COUNTER
+	TGU_COUNTER,
 };
 
 /* Maximum priority that TGU supports */
@@ -217,20 +221,37 @@ struct value_table {
 	unsigned int *counter;
 };
 
+static inline void TGU_LOCK(void __iomem *addr)
+{
+	do {
+		/* Wait for things to settle */
+		mb();
+		writel_relaxed(0x0, addr + TGU_LAR);
+	} while (0);
+}
+
+static inline void TGU_UNLOCK(void __iomem *addr)
+{
+	do {
+		writel_relaxed(TGU_UNLOCK_OFFSET, addr + TGU_LAR);
+		/* Make sure everyone has seen this */
+		mb();
+	} while (0);
+}
+
 /**
  * struct tgu_drvdata - Data structure for a TGU (Trigger Generator Unit)
  * @base: Memory-mapped base address of the TGU device
  * @dev: Pointer to the associated device structure
- * @csdev: Pointer to the associated coresight device
- * @spinlock: Spinlock for handling concurrent access
- * @enable: Flag indicating whether the TGU device is enabled
- * @value_table: Store given value based on relevant parameters.
- * @max_reg: Maximum number of registers
- * @max_step: Maximum step size
- * @max_condition_decode: Maximum number of condition_decode
- * @max_condition_select: Maximum number of condition_select
- * @max_timer: Maximum number of timers
- * @max_counter: Maximum number of counters
+ * @lock: Spinlock for handling concurrent access to private data
+ * @enabled: Flag indicating whether the TGU device is enabled
+ * @value_table: Store given value based on relevant parameters
+ * @num_reg: Maximum number of registers
+ * @num_step: Maximum step size
+ * @num_condition_decode: Maximum number of condition_decode
+ * @num_condition_select: Maximum number of condition_select
+ * @num_timer: Maximum number of timers
+ * @num_counter: Maximum number of counters
  *
  * This structure defines the data associated with a TGU device,
  * including its base address, device pointers, clock, spinlock for
@@ -240,16 +261,15 @@ struct value_table {
 struct tgu_drvdata {
 	void __iomem *base;
 	struct device *dev;
-	struct coresight_device *csdev;
-	spinlock_t spinlock;
-	bool enable;
+	spinlock_t lock;
+	bool enabled;
 	struct value_table *value_table;
-	int max_reg;
-	int max_step;
-	int max_condition_decode;
-	int max_condition_select;
-	int max_timer;
-	int max_counter;
+	int num_reg;
+	int num_step;
+	int num_condition_decode;
+	int num_condition_select;
+	int num_timer;
+	int num_counter;
 };
 
 #endif
