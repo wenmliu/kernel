@@ -16,6 +16,7 @@
 	aliases {
 		mmc0 = &sdhc_1;
 		serial0 = &uart0;
+		serial1 = &uart8;
 	};
 
 	chosen {
@@ -56,4 +57,15 @@
 	no-sd;
 
 	status = "okay";
+};
+
+&uart8 {
+	status = "okay";
+
+	bluetooth {
+		vddio-supply = <&pm4125_l7>;
+		vddxo-supply = <&pm4125_l13>;
+		vddrf-supply = <&pm4125_l10>;
+		vddch0-supply = <&pm4125_l22>;
+	};
 };

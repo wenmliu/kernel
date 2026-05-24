@@ -16,10 +16,19 @@
 	aliases {
 		mmc0 = &sdhc_1;
 		serial0 = &uart0;
+		serial1 = &uart8;
 	};
 
 	chosen {
 		stdout-path = "serial0:115200n8";
+	};
+
+	vreg_bt_3p3_dummy: regulator-bt-3p3-dummy {
+		compatible = "regulator-fixed";
+		regulator-name = "bt_3p3_dummy";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
 	};
 };
 
@@ -56,4 +65,15 @@
 	no-sd;
 
 	status = "okay";
+};
+
+&uart8 {
+	status = "okay";
+
+	bluetooth {
+		vddio-supply = <&pm8150_s4>;
+		vddxo-supply = <&pm8150_l12>;
+		vddrf-supply = <&pm8150_l8>;
+		vddch0-supply = <&vreg_bt_3p3_dummy>;
+	};
 };
