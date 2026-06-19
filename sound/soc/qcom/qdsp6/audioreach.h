@@ -720,6 +720,7 @@ struct audioreach_connection {
 
 struct audioreach_graph_info {
 	int id;
+	u32 mem_map_handle;
 	uint32_t num_sub_graphs;
 	struct list_head sg_list;
 	/* DPCM connection from FE Graph to BE graph */
@@ -843,17 +844,20 @@ struct audioreach_module_config {
 };
 
 /* Packet Allocation routines */
-void *audioreach_alloc_apm_cmd_pkt(int pkt_size, uint32_t opcode, uint32_t
-				    token);
+static inline u16 audioreach_gpr_dest_domain(gpr_device_t *gdev)
+{
+	return gdev && gdev->domain_id ? gdev->domain_id : GPR_DOMAIN_ID_ADSP;
+}
+
+void *audioreach_alloc_apm_cmd_pkt(int pkt_size, u32 opcode, u32 token,
+				   u16 dest_domain);
 void audioreach_set_default_channel_mapping(u8 *ch_map, int num_channels);
-void *audioreach_alloc_cmd_pkt(int payload_size, uint32_t opcode,
-			       uint32_t token, uint32_t src_port,
-			       uint32_t dest_port);
-void *audioreach_alloc_apm_pkt(int pkt_size, uint32_t opcode, uint32_t token,
-				uint32_t src_port);
-void *audioreach_alloc_pkt(int payload_size, uint32_t opcode,
-			   uint32_t token, uint32_t src_port,
-			   uint32_t dest_port);
+void *audioreach_alloc_cmd_pkt(int payload_size, u32 opcode, u32 token,
+			       u32 src_port, u32 dest_port, u16 dest_domain);
+void *audioreach_alloc_apm_pkt(int pkt_size, u32 opcode, u32 token,
+			       u32 src_port, u16 dest_domain);
+void *audioreach_alloc_pkt(int payload_size, u32 opcode, u32 token,
+			   u32 src_port, u32 dest_port, u16 dest_domain);
 void *audioreach_alloc_graph_pkt(struct q6apm *apm, struct audioreach_graph_info
 				 *info);
 /* Topology specific */
@@ -861,10 +865,6 @@ int audioreach_tplg_init(struct snd_soc_component *component);
 
 /* Module specific */
 void audioreach_graph_free_buf(struct q6apm_graph *graph);
-int audioreach_map_memory_regions(struct q6apm_graph *graph,
-				  unsigned int dir, size_t period_sz,
-				  unsigned int periods,
-				  bool is_contiguous);
 int audioreach_send_cmd_sync(struct device *dev, gpr_device_t *gdev, struct gpr_ibasic_rsp_result_t *result,
 			     struct mutex *cmd_lock, gpr_port_t *port, wait_queue_head_t *cmd_wait,
 			     struct gpr_pkt *pkt, uint32_t rsp_opcode);
